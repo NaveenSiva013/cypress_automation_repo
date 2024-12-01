@@ -13,3 +13,8 @@ Scenario: Test to validate logout functionality
         When I click on the "logout button" on "home page"
         Then I validated "login button" is visible on "login page"
         And I Closed the applitools setup
+
+@regression @desktop @TC_ID-2 @TL-ID-114472
+Scenario: Test to validate logout functionality - 01
+        Given I Initiate applitools setup on "Home Page"
+        When I click on first mail
