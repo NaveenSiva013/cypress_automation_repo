@@ -1,0 +1,61 @@
+name: dehn-test-automation-docker $(Rev:.r) - $(Date:yyyy-MM-dd)
+
+#############
+# Resource Repositories
+#############
+resources:
+  repositories:
+  - repository: templates
+    type: git
+    name: DDS Team Solar/dehn-commerce-pipeline-templates
+
+#############
+# Trigger
+#############
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+    - package.json
+
+##############
+# Parameters #
+##############
+parameters:
+  - name: TAG_REPO
+    displayName: Tag Repository
+    type: boolean
+    default: false
+
+#############
+# Variables
+#############
+
+variables:
+  APP_NAME: cypress
+  ACR_SVC_CON: dehn-common-acr
+  ACR_ADDRESS: dehncommonacr.azurecr.io
+  DOCKERFILE: Dockerfile
+  BUILDCONTEXT:
+
+#############
+# Stages
+#############
+stages:
+
+  - stage: Build
+    pool:
+      vmImage: ubuntu-latest
+    jobs:
+      - job: docker_build_push
+        displayName: Build, Tag and Push Docker Image
+        timeoutInMinutes: 10
+        variables:
+          - name: TAG_REPO
+            value: ${{ parameters.TAG_REPO }}
+        steps:
+          - template: common/azure-git-tag-generate.yml@templates
+          - template: common/azure-containerize.yml@templates
+          - template: common/azure-git-tag-push.yml@templates

@@ -1,0 +1,23 @@
+image: cypress/included:13.6.4
+
+pipelines:
+  custom:
+    CypressRegressionTest:
+      - step:
+          name: Regression Test
+          caches:
+            - node
+          script:
+            - export REPORT_DIRECTORY=./reports/desktop_report/cucumber-htmlreport
+            - export REPORT_JSON_PATH=./reports/desktop_report/jsonlogs/log.json
+            - export REPORT_JSON_DIR=./reports/desktop_report/jsonlogs
+            - export REPORT_JSON_MESSAGE_PATH=./reports/desktop_report/jsonlogs/messages.ndjson
+            - export SCREENSHOT_FOLDER=./reports/desktop_report/screenshots
+            - export BITBUCKET_GIT_HTTP_ORIGIN=${BITBUCKET_GIT_HTTP_ORIGIN}
+            - export BITBUCKET_BUILD_NUMBER=${BITBUCKET_BUILD_NUMBER}
+            - npm install
+            - npm install cypress
+            - npm run cy:teams-desktop-regression-test
+
+          artifacts:
+            - reports/desktop_report/**
