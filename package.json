@@ -1,0 +1,40 @@
+{
+  "name": "cypressautomation",
+  "version": "2.0.299",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "cy:open": "npx cypress open",
+    "report": "node ./utils/cucumber-html-report.js",
+    "slack:report": "node ./utils/slackReporterHelper.js",
+    "teams:report": "node ./utils/msTeamsReporterHelper.js",
+    "xray:importResults": "node ./utils/xray-integration.js",
+    "testLink:importResults": "node ./utils/testLinkIntegration/testLinkIntegration.js",
+    "cy:desktop-regression-test": "npx cypress run --env tags=\"@regression and @desktop\" --browser chrome --headless && npm run report || (npm run report && exit 1)",
+    "cy:teams-desktop-regression-test": "npx cypress run --env tags=\"@regression and @desktop\" --browser chrome --headless && npm run report && npm run teams:report || (npm run teams:report && exit 1)",
+    "cy:desktop-smoke-test": "npx cypress run --env tags=\"@smoke and @desktop\" --browser chrome --headless && npm run report || (npm run report && exit 1)",
+    "cy:mobile-regression-test": "npx cypress run --env tags=\"@regression and @mobile\" --browser firefox --headless && npm run report || (npm run report && exit 1)",
+    "cy:mobile-smoke-test": "npx cypress run --env tags=\"@smoke and @mobile\" --browser firefox --headless && npm run report || (npm run report && exit 1)",
+    "cy:tablet-regression-test": "npx cypress run --env tags=\"@regression and @tablet\" --browser edge --headless && npm run report || (npm run report && exit 1)",
+    "cy:tablet-smoke-test": "npx cypress run --env tags=\"@smoke and @tablet\" --browser edge --headless && npm run report || (npm run report && exit 1)"
+  },
+  "author": "Mindcurv",
+  "license": "ISC",
+  "devDependencies": {
+    "@applitools/eyes-cypress": "^3.45.2",
+    "@badeball/cypress-cucumber-preprocessor": "^20.0.1",
+    "@cypress/browserify-preprocessor": "^3.0.2",
+    "@cypress/xpath": "^2.0.3",
+    "axios": "^1.6.7",
+    "cypress": "^13.6.4",
+    "cypress-iframe": "^1.0.1",
+    "cypress-wait-for-stable-dom": "^0.1.0",
+    "dotenv": "^16.4.1",
+    "googleapis": "^132.0.0",
+    "multiple-cucumber-html-reporter": "^3.6.1"
+  },
+  "stepDefinitions": [
+    "[filepart]/step_definitions/*.{js,ts}",
+    "[filepart]/step_definitions/pages/*.{js,ts}"
+  ]
+}

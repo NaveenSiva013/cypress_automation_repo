@@ -1,0 +1,129 @@
+version: "3"
+services:
+
+  # this container will run Cypress regression test using Chrome browser in desktop view
+  regression-desktop:
+    image: "cypress/web:latest"
+    command: "cy:desktop-regression-test"
+    volumes:
+      - ./cypress/:/cypress-docker/cypress/
+      - ./reports/:/cypress-docker/reports/
+    environment:
+      - REPORT_DIRECTORY=./reports/desktop_report/cucumber-htmlreport
+      - REPORT_JSON_PATH=./reports/desktop_report/jsonlogs/log.json
+      - REPORT_JSON_DIR=./reports/desktop_report/jsonlogs
+      - REPORT_JSON_MESSAGE_PATH=./reports/desktop_report/jsonlogs/messages.ndjson
+      - SCREENSHOT_FOLDER=./reports/desktop_report/screenshots
+      - user_password=${user_password}
+      - FORGOT_EMAIL_CLIENT_ID=${FORGOT_EMAIL_CLIENT_ID}
+      - FORGOT_EMAIL_CLIENT_SECRET=${FORGOT_EMAIL_CLIENT_SECRET}
+      - FORGOT_EMAIL_REFRESH_TOKEN=${FORGOT_EMAIL_REFRESH_TOKEN}
+
+   # this container will run Cypress smoke test using Chrome browser in desktop view
+  smoke-desktop:
+    # build: .
+    image: "cypress/web:latest"
+    command: "cy:desktop-smoke-test"
+    volumes:
+        - ./cypress/:/cypress-docker/cypress/
+        - ./reports/:/cypress-docker/reports/
+
+    environment:
+      - REPORT_DIRECTORY=./reports/desktop_report/cucumber-htmlreport
+      - REPORT_JSON_PATH=reports/desktop_report/jsonlogs/log.json
+      - REPORT_JSON_DIR=reports/desktop_report/jsonlogs
+      - REPORT_JSON_MESSAGE_PATH=reports/desktop_report/jsonlogs/messages.ndjson
+      - SCREENSHOT_FOLDER=reports/desktop_report/screenshots
+      - user_password=${user_password}
+      - FORGOT_EMAIL_CLIENT_ID=${FORGOT_EMAIL_CLIENT_ID}
+      - FORGOT_EMAIL_CLIENT_SECRET=${FORGOT_EMAIL_CLIENT_SECRET}
+      - FORGOT_EMAIL_REFRESH_TOKEN=${FORGOT_EMAIL_REFRESH_TOKEN}
+
+  # this container will run Cypress regression test using firefox browser in mobile view
+  regression-mobile:
+    # build: .
+    image: "cypress/web:latest"
+    command: "cy:mobile-regression-test"
+    volumes:
+        - ./cypress/:/cypress-docker/cypress/
+        - ./reports/:/cypress-docker/reports/
+
+    environment:
+      - REPORT_DIRECTORY=./reports/mobile_report/cucumber-htmlreport
+      - REPORT_JSON_PATH=reports/mobile_report/jsonlogs/log.json
+      - REPORT_JSON_DIR=reports/mobile_report/jsonlogs
+      - REPORT_JSON_MESSAGE_PATH=reports/mobile_report/jsonlogs/messages.ndjson
+      - SCREENSHOT_FOLDER=reports/mobile_report/screenshots
+      - user_password=${user_password}
+      - FORGOT_EMAIL_CLIENT_ID=${FORGOT_EMAIL_CLIENT_ID}
+      - FORGOT_EMAIL_CLIENT_SECRET=${FORGOT_EMAIL_CLIENT_SECRET}
+      - FORGOT_EMAIL_REFRESH_TOKEN=${FORGOT_EMAIL_REFRESH_TOKEN}
+
+    # this container will run Cypress smoke test using firefox browser in mobile view
+  smoke-mobile:
+    # build: .
+    image: "cypress/web:latest"
+    command: "cy:mobile-smoke-test"
+    volumes:
+        - ./cypress/:/cypress-docker/cypress/
+        - ./reports/:/cypress-docker/reports/
+    environment:
+      - REPORT_DIRECTORY=./reports/mobile_report/cucumber-htmlreport
+      - REPORT_JSON_PATH=reports/mobile_report/jsonlogs/log.json
+      - REPORT_JSON_DIR=reports/mobile_report/jsonlogs
+      - REPORT_JSON_MESSAGE_PATH=reports/mobile_report/jsonlogs/messages.ndjson
+      - SCREENSHOT_FOLDER=reports/mobile_report/screenshots
+      - user_password=${user_password}
+      - FORGOT_EMAIL_CLIENT_ID=${FORGOT_EMAIL_CLIENT_ID}
+      - FORGOT_EMAIL_CLIENT_SECRET=${FORGOT_EMAIL_CLIENT_SECRET}
+      - FORGOT_EMAIL_REFRESH_TOKEN=${FORGOT_EMAIL_REFRESH_TOKEN}
+
+  # this container will run Cypress regression test using edge browser in tablet view
+  regression-tablet:
+    # build: .
+    image: "cypress/web:latest"
+    command: "cy:tablet-regression-test"
+    volumes:
+        - ./cypress/:/cypress-docker/cypress/
+        - ./reports/:/cypress-docker/reports/
+    environment:
+      - REPORT_DIRECTORY=./reports/tablet_report/cucumber-htmlreport
+      - REPORT_JSON_PATH=reports/tablet_report/jsonlogs/log.json
+      - REPORT_JSON_DIR=reports/tablet_report/jsonlogs
+      - REPORT_JSON_MESSAGE_PATH=reports/tablet_report/jsonlogs/messages.ndjson
+      - SCREENSHOT_FOLDER=reports/tablet_report/screenshots
+      - user_password=${user_password}
+      - FORGOT_EMAIL_CLIENT_ID=${FORGOT_EMAIL_CLIENT_ID}
+      - FORGOT_EMAIL_CLIENT_SECRET=${FORGOT_EMAIL_CLIENT_SECRET}
+      - FORGOT_EMAIL_REFRESH_TOKEN=${FORGOT_EMAIL_REFRESH_TOKEN}
+
+  # this container will run Cypress smoke test using edge browser in tablet view
+  smoke-tablet:
+    # build: .
+    image: "cypress/web:latest"
+    command: "cy:tablet-smoke-test"
+    volumes:
+        - ./cypress/:/cypress-docker/cypress/
+        - ./reports/:/cypress-docker/reports/
+    environment:
+      - REPORT_DIRECTORY=./reports/tablet_report/cucumber-htmlreport
+      - REPORT_JSON_PATH=reports/tablet_report/jsonlogs/log.json
+      - REPORT_JSON_DIR=reports/tablet_report/jsonlogs
+      - REPORT_JSON_MESSAGE_PATH=reports/tablet_report/jsonlogs/messages.ndjson
+      - SCREENSHOT_FOLDER=reports/tablet_report/screenshots
+      - user_password=${user_password}
+      - FORGOT_EMAIL_CLIENT_ID=${FORGOT_EMAIL_CLIENT_ID}
+      - FORGOT_EMAIL_CLIENT_SECRET=${FORGOT_EMAIL_CLIENT_SECRET}
+      - FORGOT_EMAIL_REFRESH_TOKEN=${FORGOT_EMAIL_REFRESH_TOKEN}
+      
+  import-executionResults:
+  #  build: .
+    image: "cypress/web:latest"
+    command: "xray:importResults"
+    volumes:
+        - ./cypress/:/cypress-docker/cypress/
+        - ./reports/:/cypress-docker/reports/        
+    environment:
+      - REPORT_JSON_PATH=${REPORT_JSON_PATH}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}

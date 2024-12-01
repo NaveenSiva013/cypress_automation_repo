@@ -1,0 +1,179 @@
+parameters:
+- name: Testing_Type
+  displayName: Testing Type
+  type: string
+  default: 'Regression'
+  values:
+  - Regression
+  - Smoke
+
+- name: xray_Integration
+  displayName: Xray Integration
+  type: string
+  default: 'False'
+  values:
+  - True
+  - False
+
+trigger: none
+
+schedules:
+- cron: "30 16 * * 1-5"
+  displayName: M-F 10:00 PM IST daily build
+  branches:
+    include:
+      - master
+  always: true
+
+stages:
+- stage: web_automation
+  displayName: 'Web Automation'
+  jobs: 
+  - ${{ if contains(parameters.testing_type, 'regression') }}:
+    - job: regression_web_automation_job
+      variables:
+        DESKTOP_REPORT_JSON_PATH: '/reports/desktop_report/jsonlogs/log.json'
+        MOBILE_REPORT_JSON_PATH: '/reports/mobile_report/jsonlogs/log.json'
+        TABLET_REPORT_JSON_PATH: '/reports/tablet_report/jsonlogs/log.json'
+
+      displayName: 'Run Cypress Regression Automation'
+      steps:
+      - task: Docker@2
+        displayName: 'Login to ACR'
+        inputs:
+          containerRegistry: 'dehn-common-acr'
+          command: 'login'
+
+      - task: DockerCompose@0
+        displayName: 'Regression Test'
+        inputs:
+          containerregistrytype: 'Container Registry'
+          dockerComposeFile: 'docker-compose.yml'
+          dockerComposeCommand: 'up regression-desktop regression-mobile'
+        env:
+          user_password: $(user_password)
+          REPORT_JSON_PATH: ${DESKTOP_REPORT_JSON_PATH}
+          CLIENT_ID: $(CLIENT_ID)
+          CLIENT_SECRET: $(CLIENT_SECRET)
+          FORGOT_EMAIL_CLIENT_ID: $(FORGOT_EMAIL_CLIENT_ID)
+          FORGOT_EMAIL_CLIENT_SECRET: $(FORGOT_EMAIL_CLIENT_SECRET)
+          FORGOT_EMAIL_REFRESH_TOKEN: $(FORGOT_EMAIL_REFRESH_TOKEN)
+          
+      - task: CopyFiles@2
+        displayName: 'Copy Test Results'
+        inputs:
+          SourceFolder: '$(Build.SourcesDirectory)/'
+          Contents: 'reports/**'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+      - task: PowerShell@2
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo $(Build.ArtifactStagingDirectory)
+            ls $(Build.ArtifactStagingDirectory)
+            
+      - ${{ if contains(parameters.xray_Integration, 'True') }}:
+        - task: DockerCompose@0
+          displayName: 'Desktop XRay Import Results'
+          inputs:
+            containerregistrytype: 'Container Registry'
+            dockerComposeFile: 'docker-compose.yml'
+            dockerComposeCommand: 'up import-executionResults'
+          env:
+            REPORT_JSON_PATH: ${{ variables.DESKTOP_REPORT_JSON_PATH }}
+            user_password: $(user_password)
+            CLIENT_ID: $(CLIENT_ID)
+            CLIENT_SECRET: $(CLIENT_SECRET)
+            FORGOT_EMAIL_CLIENT_ID: $(FORGOT_EMAIL_CLIENT_ID)
+            FORGOT_EMAIL_CLIENT_SECRET: $(FORGOT_EMAIL_CLIENT_SECRET)
+            FORGOT_EMAIL_REFRESH_TOKEN: $(FORGOT_EMAIL_REFRESH_TOKEN)
+
+      - task: PublishCucumberReport@1
+        displayName: 'Publish Desktop Cucumber Report'
+        inputs:
+          jsonDir: '$(Build.ArtifactStagingDirectory)/reports/desktop_report/jsonlogs'
+          outputPath: '$(Build.ArtifactStagingDirectory)/reports/desktop_report/cucumber-htmlreport'
+          name: 'Desktop Report'
+          title: Desktop Report
+          
+      - ${{ if contains(parameters.xray_Integration, 'True') }}:
+        - task: DockerCompose@0
+          displayName: 'Mobile XRay Import Results'
+          inputs:
+            containerregistrytype: 'Container Registry'
+            dockerComposeFile: 'docker-compose.yml'
+            dockerComposeCommand: 'up import-executionResults'
+          env:
+            REPORT_JSON_PATH: ${{ variables.MOBILE_REPORT_JSON_PATH }}
+            user_password: $(user_password)
+            CLIENT_ID: $(CLIENT_ID)
+            CLIENT_SECRET: $(CLIENT_SECRET)
+            FORGOT_EMAIL_CLIENT_ID: $(FORGOT_EMAIL_CLIENT_ID)
+            FORGOT_EMAIL_CLIENT_SECRET: $(FORGOT_EMAIL_CLIENT_SECRET)
+            FORGOT_EMAIL_REFRESH_TOKEN: $(FORGOT_EMAIL_REFRESH_TOKEN)
+
+      - task: PublishCucumberReport@1
+        displayName: 'Publish Mobile Cucumber Report'
+        inputs:
+          jsonDir: '$(Build.ArtifactStagingDirectory)/reports/mobile_report/jsonlogs'
+          outputPath: '$(Build.ArtifactStagingDirectory)/reports/mobile_report/cucumber-htmlreport'
+          name: 'Mobile Report'
+          title: Mobile Report
+
+      # - task: PublishCucumberReport@1
+      #   displayName: 'Publish Tablet Cucumber Report'
+      #   inputs:
+      #     jsonDir: '$(Build.ArtifactStagingDirectory)/reports/tablet_report/jsonlogs'
+      #     outputPath: '$(Build.ArtifactStagingDirectory)/reports/tablet_report/cucumber-htmlreport'
+      #     name: 'Tablet Report'
+      #     title: Tablet Report         
+
+
+  - ${{ if contains(parameters.testing_type, 'smoke') }}:
+    - job: smoke_web_automation_job
+      displayName: 'Run Cypress Smoke Automation'
+      steps:
+      - task: Docker@2
+        displayName: 'Login to ACR'
+        inputs:
+          containerRegistry: 'dehn-common-acr'
+          command: 'login'
+
+      - task: DockerCompose@0
+        displayName: 'Smoke Test'
+        inputs:
+          containerregistrytype: 'Container Registry'
+          dockerComposeFile: 'docker-compose.yml'
+          dockerComposeCommand: 'up smoke-desktop smoke-mobile'        
+          
+      - task: CopyFiles@2
+        displayName: 'Copy Test Results'
+        inputs:
+          SourceFolder: '$(Build.SourcesDirectory)/'
+          Contents: 'reports/**'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+      - task: PublishCucumberReport@1
+        displayName: 'Publish Desktop Cucumber Report'
+        inputs:
+          jsonDir: '$(Build.ArtifactStagingDirectory)/reports/desktop_report/jsonlogs'
+          outputPath: '$(Build.ArtifactStagingDirectory)/reports/desktop_report/cucumber-htmlreport'
+          name: 'Desktop Report'
+          title: Desktop Report
+
+      # - task: PublishCucumberReport@1
+      #   displayName: 'Publish Mobile Cucumber Report'
+      #   inputs:
+      #     jsonDir: '$(Build.ArtifactStagingDirectory)/reports/mobile_report/jsonlogs'
+      #     outputPath: '$(Build.ArtifactStagingDirectory)/reports/mobile_report/cucumber-htmlreport'
+      #     name: 'Mobile Report'
+      #     title: Mobile Report
+
+      # - task: PublishCucumberReport@1
+      #   displayName: 'Publish Tablet Cucumber Report'
+      #   inputs:
+      #     jsonDir: '$(Build.ArtifactStagingDirectory)/reports/tablet_report/jsonlogs'
+      #     outputPath: '$(Build.ArtifactStagingDirectory)/reports/tablet_report/cucumber-htmlreport'
+      #     name: 'Tablet Report'
+      #     title: Tablet Report      
